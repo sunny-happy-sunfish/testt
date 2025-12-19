@@ -1,0 +1,35 @@
+name: Copy Python files from BotLi
+
+on:
+  workflow_dispatch:
+
+jobs:
+  copy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      - name: Clone BotLi
+        run: |
+          git clone --depth 1 https://github.com/Torom/BotLi
+      - name: Copy over .py files
+        run: |
+          rsync -av --include='*/' --include='*.py' --exclude='*' BotLi/ ./
+      - name: Configure git
+        run: |
+          git config --global user.name "github-action"
+          git config --global user.email "action@github.com"
+      - name: Commit changes
+        run: |
+          git add -u
+          git add *.py || true
+          git commit -m "Copy .py files from BotLi" || echo "No changes to commit"
+      - name: Pull remote changes (avoid rejected push)
+        run: |
+          git pull --rebase origin main || true
+      - name: Push changes
+        run: |
+          git push origin main
