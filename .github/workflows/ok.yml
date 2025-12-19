@@ -1,0 +1,46 @@
+name: Run
+
+on:
+  workflow_dispatch:
+  push:
+    paths: "user_interface.py"
+
+jobs:
+  run-bot:
+    concurrency:
+      group: bot
+      cancel-in-progress: false
+    name: Run bot
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      
+      - name: Install requirements
+        run: pip install -r requirements.txt
+        
+      - name: Token
+        run: sed -i "s/litoken_idk/${{ secrets.TOKEN4 }}/g" config.yml
+        
+      - name: chmod
+        run: chmod +x ./engines/s.py
+        
+      - name: Run bot
+        run: |
+          python -u user_interface.py &
+          PID=$!
+          # abc
+          ( sleep 20100 && echo "Time up. Killing bot..." && kill -SIGTERM $PID ) &
+          wait $PID
+          echo "Bot ended cleanly."
+
+   #   - name: Self-restart
+  #      if: always()
+    #    run: gh workflow run ok.yml
+     #   env:
+      #    GH_TOKEN: ${{ secrets.PAT_TOKEN }}
